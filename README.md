@@ -19,7 +19,23 @@ salir del contenedor jenkins (ctrl + q o exit)
 # construir la imagen del agente.
 docker build -t jenkins-agent:ubuntu \
   --build-arg JENKINS_AGENT_SSH_PUBKEY="$(docker exec jenkins cat /var/jenkins_home/.ssh/id_rsa.pub)" \
-  -f Dockerfile.agent .
+  -f dockerfile.agent .
+
+
+#levantar el agente
+docker run -d \
+  --name jenkins-agent \
+  --network jenkins-net \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  jenkins-agent:ubuntu
+
+
+# validar que los contenedores esta levantados
+docker ps
+
+#entro a jenkins y trato de conectarme al agente por medio de un ssh
+docker exec -it jenkins bash
+ssh -i /var/jenkins_home/.ssh/id_rsa jenkins@jenkins-agent
 
 
 
