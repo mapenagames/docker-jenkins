@@ -1,3 +1,4 @@
+.
 docker network create jenkins-net
 
 docker run -d \
