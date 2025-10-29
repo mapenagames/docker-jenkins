@@ -69,9 +69,11 @@ echo "🚀 Levantando agente Jenkins con acceso Docker..."
 docker run -d \
   --name $AGENT_CONTAINER \
   --network $NETWORK_NAME \
-  --privileged \                             # 🔥 permite manejar contenedores
+  --privileged \
   -v /var/run/docker.sock:/var/run/docker.sock \
   $AGENT_IMAGE
+echo "fin paso docker run"
+
 
 docker image prune -f
 
