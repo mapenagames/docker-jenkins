@@ -2,7 +2,7 @@
 set -e
 
 echo "🚀 Iniciando entorno Jenkins + agente..."
-
+echo ""
 # Variables
 NETWORK_NAME="jenkins-net"
 JENKINS_CONTAINER="jenkins"
@@ -17,6 +17,7 @@ if ! docker network inspect $NETWORK_NAME >/dev/null 2>&1; then
 else
   echo "🌐 Red $NETWORK_NAME ya existe."
 fi
+echo ""
 
 # 2️⃣ Levantar Jenkins
 if ! docker ps --format '{{.Names}}' | grep -q "^$JENKINS_CONTAINER$"; then
@@ -35,6 +36,7 @@ if ! docker ps --format '{{.Names}}' | grep -q "^$JENKINS_CONTAINER$"; then
 else
   echo "🧱 Jenkins ya está corriendo."
 fi
+echo ""
 
 # 3️⃣ Generar clave SSH dentro del contenedor Jenkins
 echo "🔐 Generando clave SSH dentro de Jenkins..."
@@ -47,6 +49,8 @@ docker exec $JENKINS_CONTAINER bash -c '
   chmod 644 /var/jenkins_home/.ssh/id_rsa.pub
 '
 PUBKEY=$(docker exec $JENKINS_CONTAINER cat /var/jenkins_home/.ssh/id_rsa.pub)
+echo ""
+
 
 # 4️⃣ Construir imagen del agente
 if [ ! -f "$DOCKERFILE_AGENT" ]; then
@@ -58,6 +62,7 @@ echo "🧩 Construyendo imagen del agente ($AGENT_IMAGE)..."
 docker build -t $AGENT_IMAGE \
   --build-arg JENKINS_AGENT_SSH_PUBKEY="$PUBKEY" \
   -f $DOCKERFILE_AGENT .
+echo ""
 
 # 5️⃣ Levantar agente (con privilegios para Docker)
 if docker ps --format '{{.Names}}' | grep -q "^$AGENT_CONTAINER$"; then
@@ -74,7 +79,10 @@ docker run -d \
   -v jenkins_agent_home:/home/jenkins \  
   $AGENT_IMAGE
 echo "fin paso docker run"
+echo ""
+echo ""
 
+echo "borrado de contenedores en des-uso"
 docker image prune -f
 
 # 6️⃣ Test automático de Docker en el agente
@@ -87,6 +95,8 @@ docker exec $AGENT_CONTAINER bash -c '
   docker run --rm alpine echo "✅ Docker funciona correctamente dentro del agente"
 '
 
+echo ""
+
 # 7️⃣ Probar conectividad SSH desde Jenkins al agente
 echo "🔍 Probando conexión SSH desde Jenkins al agente..."
 if docker exec $JENKINS_CONTAINER ssh -o StrictHostKeyChecking=no -i /var/jenkins_home/.ssh/id_rsa jenkins@$AGENT_CONTAINER hostname; then
@@ -96,6 +106,13 @@ else
   exit 1
 fi
 
+echo ""
 echo "✅ Jenkins y su agente están listos."
 echo "👉 Accedé a Jenkins en: http://localhost:8080"
 echo "   Contraseña inicial: docker exec $JENKINS_CONTAINER cat /var/jenkins_home/secrets/initialAdminPassword"
+
+echo ""
+echo " se invoca al script 3runAgentFROMjenkins-Agent  para que arranque el agente.
+./3runAgentFROMjenkins-Agent
+echo ""
+echo ""
