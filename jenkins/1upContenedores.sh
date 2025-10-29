@@ -71,9 +71,9 @@ docker run -d \
   --network $NETWORK_NAME \
   --privileged \
   -v /var/run/docker.sock:/var/run/docker.sock \
+  -v jenkins_agent_home:/home/jenkins \  
   $AGENT_IMAGE
 echo "fin paso docker run"
-
 
 docker image prune -f
 
