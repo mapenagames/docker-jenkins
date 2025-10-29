@@ -1,0 +1,27 @@
+#!/bin/bash
+#!/bin/bash
+set -e
+
+# Variables
+AGENT_CONTAINER="jenkins-agent"
+JENKINS_HOST="jenkins"       # nombre del contenedor Jenkins dentro de la red
+JENKINS_PORT=8080
+AGENT_NAME="jenkins-agent"
+AGENT_WORKDIR="/home/jenkins"
+SECRET="19ab8d9c6fb8b8370a3bb01effc990988f8b36ed5e981e2adf92051c71cf8fb0"
+
+echo "🚀 Conectando al agente $AGENT_CONTAINER para ejecutar JNLP/WebSocket..."
+
+docker exec -it $AGENT_CONTAINER bash -c "
+  cd $AGENT_WORKDIR
+  echo '⬇️ Descargando agent.jar desde Jenkins...'
+  curl -sO http://$JENKINS_HOST:$JENKINS_PORT/jnlpJars/agent.jar
+  echo '☕ Iniciando agente JNLP/WebSocket...'
+  java -jar agent.jar \
+    -url http://$JENKINS_HOST:$JENKINS_PORT/ \
+    -secret $SECRET \
+    -name \"$AGENT_NAME\" \
+    -workDir $AGENT_WORKDIR \
+    -webSocket
+"
+
