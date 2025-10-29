@@ -30,13 +30,11 @@ if ! docker ps --format '{{.Names}}' | grep -q "^$JENKINS_CONTAINER$"; then
     -v /var/run/docker.sock:/var/run/docker.sock \
     jenkins/jenkins:lts
 
-  # Esperar unos segundos para que Jenkins inicialice
   echo "⏳ Esperando que Jenkins arranque..."
   sleep 10
 else
   echo "🧱 Jenkins ya está corriendo."
 fi
-
 
 # 3️⃣ Generar clave SSH dentro del contenedor Jenkins
 echo "🔐 Generando clave SSH dentro de Jenkins..."
@@ -61,23 +59,33 @@ docker build -t $AGENT_IMAGE \
   --build-arg JENKINS_AGENT_SSH_PUBKEY="$PUBKEY" \
   -f $DOCKERFILE_AGENT .
 
-# 5️⃣ Levantar agente
+# 5️⃣ Levantar agente (con privilegios para Docker)
 if docker ps --format '{{.Names}}' | grep -q "^$AGENT_CONTAINER$"; then
   echo "🧹 Eliminando agente anterior..."
   docker rm -f $AGENT_CONTAINER
 fi
 
-echo "🚀 Levantando agente Jenkins..."
+echo "🚀 Levantando agente Jenkins con acceso Docker..."
 docker run -d \
   --name $AGENT_CONTAINER \
   --network $NETWORK_NAME \
+  --privileged \                             # 🔥 permite manejar contenedores
   -v /var/run/docker.sock:/var/run/docker.sock \
   $AGENT_IMAGE
 
-
 docker image prune -f
 
-# 6️⃣ Probar conectividad SSH
+# 6️⃣ Test automático de Docker en el agente
+echo "🔍 Verificando acceso al daemon Docker dentro del agente..."
+docker exec $AGENT_CONTAINER bash -c '
+  echo "👤 Usuario actual: $(whoami)"
+  echo "📦 Contenedores activos dentro del agente:"
+  docker ps
+  echo "🧪 Probando ejecución de contenedor hijo..."
+  docker run --rm alpine echo "✅ Docker funciona correctamente dentro del agente"
+'
+
+# 7️⃣ Probar conectividad SSH desde Jenkins al agente
 echo "🔍 Probando conexión SSH desde Jenkins al agente..."
 if docker exec $JENKINS_CONTAINER ssh -o StrictHostKeyChecking=no -i /var/jenkins_home/.ssh/id_rsa jenkins@$AGENT_CONTAINER hostname; then
   echo "✅ Conexión SSH exitosa."
@@ -89,4 +97,3 @@ fi
 echo "✅ Jenkins y su agente están listos."
 echo "👉 Accedé a Jenkins en: http://localhost:8080"
 echo "   Contraseña inicial: docker exec $JENKINS_CONTAINER cat /var/jenkins_home/secrets/initialAdminPassword"
-
