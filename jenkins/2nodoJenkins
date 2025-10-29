@@ -1,0 +1,33 @@
+
+
+Entrá en Jenkins:
+👉 http://localhost:8080
+
+(usá la contraseña en /var/jenkins_home/secrets/initialAdminPassword)
+
+Ir a:
+Administrar Jenkins → Nodos → Nuevo nodo
+
+Configurá:
+
+Nombre del nodo: jenkins-agent
+
+Tipo: Agente permanente
+
+Ejecutores: 1
+
+Ruta remota: /home/jenkins
+
+Método de conexión: SSH
+
+Host: jenkins-agent
+
+Puerto: 22
+
+Credenciales:
+
+Tipo: SSH con clave privada
+
+Usuario: jenkins
+
+Clave privada: pegá el contenido de /var/jenkins_home/.ssh/id_rsa

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+docker exec -it jenkins-agent bash
+
