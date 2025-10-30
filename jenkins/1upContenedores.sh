@@ -10,6 +10,12 @@ AGENT_CONTAINER="jenkins-agent"
 AGENT_IMAGE="jenkins-agent:ubuntu"
 DOCKERFILE_AGENT="Dockerfile.agent"
 
+export NETWORK_NAME
+export JENKINS_CONTAINER
+export AGENT_CONTAINER
+export AGENT_IMAGE
+export DOCKERFILE_AGENT
+
 # 1️⃣ Crear red Docker
 if ! docker network inspect $NETWORK_NAME >/dev/null 2>&1; then
   echo "🌐 Creando red Docker: $NETWORK_NAME"
@@ -71,13 +77,17 @@ if docker ps --format '{{.Names}}' | grep -q "^$AGENT_CONTAINER$"; then
 fi
 
 echo "🚀 Levantando agente Jenkins con acceso Docker..."
+echo ".."
+
 docker run -d \
   --name $AGENT_CONTAINER \
   --network $NETWORK_NAME \
   --privileged \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -v jenkins_agent_home:/home/jenkins \  
+  -v agent_home_jenkins:/home/jenkins \
   $AGENT_IMAGE
+
+
 echo "fin paso docker run"
 echo ""
 echo ""
@@ -112,7 +122,6 @@ echo "👉 Accedé a Jenkins en: http://localhost:8080"
 echo "   Contraseña inicial: docker exec $JENKINS_CONTAINER cat /var/jenkins_home/secrets/initialAdminPassword"
 
 echo ""
-echo " se invoca al script 3runAgentFROMjenkins-Agent  para que arranque el agente.
-./3runAgentFROMjenkins-Agent
-echo ""
-echo ""
+echo " se invoca al script 3runAgentFROMjenkins-Agent  para que arranque el agente.i"
+
+./3runAgentFROMjenkins-Agent.sh
