@@ -85,6 +85,7 @@ docker run -d \
   --privileged \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v agent_home_jenkins:/home/jenkins \
+  -v /usr/bin/docker:/usr/bin/docker \
   $AGENT_IMAGE
 
 
